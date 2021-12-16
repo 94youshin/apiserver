@@ -1,0 +1,4 @@
+mode: debug
+address: :8080
+name: apiserver
+max_ping_count: 10
