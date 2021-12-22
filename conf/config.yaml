@@ -1,4 +1,9 @@
 mode: debug
 address: :8080
-name: apiserver
+name: app
 max_ping_count: 10
+db:
+  username: root
+  password: 2w3e$R%T
+  address: 10.92.119.202:33306
+  database: paas_monitor
