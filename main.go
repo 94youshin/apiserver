@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -70,15 +71,32 @@ func main() {
 		log.Info("The router has been deployed successfully.")
 	}()
 
+	// Start to listening the incoming requests.
+	cert := viper.GetString("tls.cert")
+	key := viper.GetString("tls.key")
+	if cert != "" && key != "" {
+		log.Infof("Start to listening the incoming requests on https address %s", viper.GetString("address"))
+		log.Info(http.ListenAndServeTLS(viper.GetString("address"), cert, key, g).Error())
+	}
 	log.Infof("Start to listening the incoming requests on http address %s", viper.GetString("address"))
 	log.Info(http.ListenAndServe(viper.GetString("address"), g).Error())
 }
 
 func pingServer() error {
 	for i := 0; i < viper.GetInt("max_ping_count"); i++ {
-		resp, err := http.Get("http://127.0.0.1:8080/sd/health")
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		c := &http.Client{
+			Transport: tr,
+		}
+		resp, err := c.Get(viper.GetString("url") + "/sd/health")
 
-		if err == nil && resp.StatusCode == 200 {
+		if err != nil {
+			log.Info(err.Error())
+		} else if resp.StatusCode != 200 {
+			log.Infof("http status code:%d", resp.StatusCode)
+		} else {
 			return nil
 		}
 
